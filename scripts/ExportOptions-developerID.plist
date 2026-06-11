@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Export options for the Developer ID (non-Mac-App-Store) distribution of
+     Monitor Agent. Hardened Runtime is on (set in the target); notarization is
+     a separate step (scripts/notarize.sh). -->
+<plist version="1.0">
+<dict>
+    <key>method</key>
+    <string>developer-id</string>
+    <key>teamID</key>
+    <string>J4UJD4Z33J</string>
+    <key>signingStyle</key>
+    <string>automatic</string>
+</dict>
+</plist>

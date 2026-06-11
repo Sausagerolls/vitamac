@@ -1,0 +1,32 @@
+VitaMac — Source-Available License
+
+Copyright (c) 2026 Giant Mushroom Studio. All rights reserved.
+
+This source code is published for transparency and review only. It is NOT
+open-source and NO license to use the software is granted.
+
+You MAY:
+  - View, read, and reference this source code.
+  - Fork the repository on GitHub for the sole purpose of reading it or
+    proposing changes back via pull request.
+
+You MAY NOT, without the prior written permission of the copyright holder:
+  - Use this software, in whole or in part, in source or compiled form, for
+    any purpose, personal or commercial.
+  - Copy, modify, merge, publish, distribute, sublicense, or sell copies of
+    this software or any substantial portion of it.
+  - Build, deploy, host, run, or redistribute this software or any derivative
+    work of it.
+  - Remove or alter this notice.
+
+"VitaMac", the VitaMac logo, "Giant Mushroom", and associated names and
+branding are trademarks of Giant Mushroom Studio and are not licensed by this
+document.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

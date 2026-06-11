@@ -1,0 +1,12 @@
+.DS_Store
+*.xcodeproj
+*.xcworkspace
+xcuserdata/
+.build/
+DerivedData/
+build/
+*.swiftpm
+.swiftpm/
+generated-images/
+.claude/settings.local.json
+icon-concepts/*.png

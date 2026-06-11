@@ -1,0 +1,114 @@
+name: Monitor
+options:
+  bundleIdPrefix: com.jakewatts
+  deploymentTarget:
+    macOS: "14.0"
+    iOS: "16.0"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    DEVELOPMENT_TEAM: J4UJD4Z33J
+    CODE_SIGN_STYLE: Automatic
+    SWIFT_VERSION: "6.0"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+
+packages:
+  MonitorKit:
+    path: MonitorKit
+  AgentCore:
+    path: AgentCore
+
+targets:
+  # ───────────────────────── macOS agent ─────────────────────────
+  MonitorAgent:
+    type: application
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - path: MonitorAgent/Sources
+      - path: MonitorAgent/Resources/Assets.xcassets
+    dependencies:
+      - package: MonitorKit
+      - package: AgentCore
+      - target: MonitorHelper
+        embed: true
+        codeSign: true
+        copy:
+          destination: executables   # → Contents/MacOS/MonitorHelper
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.jakewatts.MonitorAgent
+        PRODUCT_NAME: "VitaMac Agent"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        # No App Sandbox (Developer ID distribution). Hardened Runtime ON for
+        # notarization — it does not block any API the sampler uses.
+        ENABLE_HARDENED_RUNTIME: true
+        ENABLE_APP_SANDBOX: false
+        INFOPLIST_KEY_LSUIElement: true   # menu-bar only, no Dock icon
+        INFOPLIST_KEY_NSLocalNetworkUsageDescription: "VitaMac Agent shares this Mac's stats with your paired iPhone over the local network."
+        INFOPLIST_KEY_NSHumanReadableCopyright: ""
+    postBuildScripts:
+      # Embed the LaunchDaemon plist into the bundle. Runs after the per-target
+      # CodeSign; the Developer ID re-sign during `xcodebuild -exportArchive`
+      # re-seals the bundle with the plist present (see DISTRIBUTION.md).
+      - name: Embed LaunchDaemon plist
+        script: |
+          DEST="${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/Library/LaunchDaemons"
+          mkdir -p "$DEST"
+          cp "${SRCROOT}/MonitorAgent/Resources/com.jakewatts.MonitorAgent.helper.plist" "$DEST/"
+    info:
+      path: MonitorAgent/Info.plist
+      properties:
+        LSUIElement: true
+        CFBundleDisplayName: VitaMac Agent
+        NSLocalNetworkUsageDescription: "VitaMac Agent shares this Mac's stats with your paired iPhone over the local network."
+        NSBonjourServices:
+          - _monitor._tcp
+
+  # ───────────────────────── iOS viewer ──────────────────────────
+  Monitor:
+    type: application
+    platform: iOS
+    deploymentTarget: "16.0"
+    sources:
+      - path: Monitor/Sources
+      - path: Monitor/Resources/Assets.xcassets
+    dependencies:
+      - package: MonitorKit
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.giantmushroom.vitamac
+        PRODUCT_NAME: VitaMac
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        TARGETED_DEVICE_FAMILY: "1,2"
+        INFOPLIST_KEY_UILaunchScreen_Generation: true
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: true
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+    info:
+      path: Monitor/Info.plist
+      properties:
+        NSLocalNetworkUsageDescription: "VitaMac discovers and connects to your Mac on the local network to show its activity."
+        NSCameraUsageDescription: "VitaMac uses the camera to scan the pairing QR code shown by VitaMac Agent on your Mac."
+        NSBonjourServices:
+          - _monitor._tcp
+        ITSAppUsesNonExemptEncryption: false
+        UILaunchScreen: {}
+
+  # ─────────────────── privileged helper (root daemon) ───────────────────
+  MonitorHelper:
+    type: tool
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - path: AgentCore/Sources/MonitorHelper
+    dependencies:
+      - package: AgentCore
+      - package: MonitorKit
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.jakewatts.MonitorAgent.helper
+        PRODUCT_NAME: MonitorHelper
+        ENABLE_HARDENED_RUNTIME: true
+        SKIP_INSTALL: true

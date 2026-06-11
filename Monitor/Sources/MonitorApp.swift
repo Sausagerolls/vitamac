@@ -1,0 +1,11 @@
+import SwiftUI
+import MonitorKit
+
+@main
+struct MonitorApp: App {
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+        }
+    }
+}
