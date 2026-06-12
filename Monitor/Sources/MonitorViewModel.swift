@@ -264,8 +264,10 @@ final class MonitorViewModel: ObservableObject {
             processes = p
         case .killResult(_, let ok, let m):
             banner = ok ? nil : m
-        case .controlResult(_, _, let message):
-            banner = message.isEmpty ? nil : message
+        case .controlResult(_, let success, let message):
+            // Only surface control results when something went wrong; a
+            // successful action (e.g. display off) shouldn't flash a banner.
+            banner = success ? nil : (message.isEmpty ? nil : message)
         case .icons(let entries):
             for entry in entries where icons[entry.path] == nil {
                 if let image = UIImage(data: entry.png) {

@@ -1,6 +1,5 @@
 .DS_Store
-*.xcodeproj
-*.xcworkspace
+# Monitor.xcodeproj is committed so Xcode Cloud can discover the shared scheme.
 xcuserdata/
 .build/
 DerivedData/

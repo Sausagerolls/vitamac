@@ -18,7 +18,14 @@ struct ContentView: View {
         }
         .tint(Brand.accent)
         .preferredColorScheme(.dark)
-        .onAppear { vm.startup() }   // discovery + auto-reconnect to the last paired Mac
+        .onAppear {
+            // `-demoScreenshots` boots straight into Demo Mode for App Store capture.
+            if ProcessInfo.processInfo.arguments.contains("-demoScreenshots") {
+                vm.startDemo()
+            } else {
+                vm.startup()   // discovery + auto-reconnect to the last paired Mac
+            }
+        }
         .onChange(of: scenePhase) { newPhase in
             if newPhase == .active { vm.appBecameActive() }
         }
@@ -179,12 +186,19 @@ enum MonitorTab: String, CaseIterable, Identifiable {
         case .controls: return "switch.2"
         }
     }
+    /// Initial tab, overridable via `-demoTab <raw>` for App Store capture.
+    static var initialSelection: MonitorTab {
+        let args = ProcessInfo.processInfo.arguments
+        if let i = args.firstIndex(of: "-demoTab"), i + 1 < args.count,
+           let tab = MonitorTab(rawValue: args[i + 1]) { return tab }
+        return .dashboard
+    }
 }
 
 struct MainView: View {
     @ObservedObject var vm: MonitorViewModel
     @Environment(\.horizontalSizeClass) private var sizeClass
-    @State private var selection: MonitorTab = .dashboard
+    @State private var selection: MonitorTab = MonitorTab.initialSelection
 
     var body: some View {
         Group {
@@ -223,7 +237,8 @@ struct MainView: View {
             }
         }
         .overlay(alignment: .top) {
-            if let banner = vm.banner {
+            if let banner = vm.banner,
+               !ProcessInfo.processInfo.arguments.contains("-demoScreenshots") {
                 Text(banner).font(.caption).padding(8)
                     .background(.red.opacity(0.15), in: Capsule())
                     .padding(.top, 6)
