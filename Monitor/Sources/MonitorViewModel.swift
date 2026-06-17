@@ -27,7 +27,6 @@ final class MonitorViewModel: ObservableObject {
     @Published private(set) var processes: [ProcessSample] = []
     @Published private(set) var cpuHistory: [Double] = []
     @Published private(set) var icons: [String: UIImage] = [:]
-    @Published var isDemo = false
     @Published var banner: String?
     @Published var pendingService: Service?
     @Published var sortKey: SortKey = .cpu
@@ -56,9 +55,6 @@ final class MonitorViewModel: ObservableObject {
     /// The client whose drop we last acted on — dedupes the two callbacks a
     /// single disconnect produces (onState .failed + stream finish).
     private var lastDroppedClient: MonitorClient?
-
-    private var demoTimer: Timer?
-    private var demoBusy = 30.0
 
     private var requestedIconPaths: Set<String> = []
     private var pendingIconPaths: Set<String> = []
@@ -109,41 +105,6 @@ final class MonitorViewModel: ObservableObject {
         pendingService = Service(id: "saved:\(name)", name: name, endpoint: endpoint)
         status = "Reconnecting to \(name)…"
         connect(code: savedCode)
-    }
-
-    // MARK: - Demo mode (reviewable without the Mac agent)
-
-    func startDemo() {
-        intentionalDisconnect = true
-        client?.cancel(); client = nil
-        consumeTask?.cancel(); reconnectTask?.cancel()
-        browser?.cancel()
-        isDemo = true
-        demoBusy = 30
-        processes = Demo.processes()
-        cpuHistory = []
-        system = Demo.system(busy: demoBusy)
-        link = .live
-        banner = "Demo mode — data is simulated"
-        screen = .dashboard
-        demoTimer?.invalidate()
-        demoTimer = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true) { [weak self] _ in
-            Task { @MainActor in self?.demoTick() }
-        }
-    }
-
-    private func demoTick() {
-        guard isDemo else { return }
-        demoBusy = max(5, min(95, demoBusy + Double.random(in: -8...8)))
-        system = Demo.system(busy: demoBusy)
-        processes = Demo.jitter(processes)
-        cpuHistory.append(demoBusy)
-        if cpuHistory.count > cpuHistoryLimit { cpuHistory.removeFirst(cpuHistory.count - cpuHistoryLimit) }
-    }
-
-    private func stopDemo() {
-        demoTimer?.invalidate(); demoTimer = nil
-        isDemo = false
     }
 
     // MARK: - Discovery
@@ -344,17 +305,11 @@ final class MonitorViewModel: ObservableObject {
     // MARK: - Actions
 
     func kill(_ process: ProcessSample, signal: MonitorSignal) {
-        if isDemo {
-            processes.removeAll { $0.pid == process.pid }
-            banner = "Demo — “\(process.name)” quit (simulated)"
-            return
-        }
         client?.send(.kill(pid: process.pid, signal: signal.rawValue,
                            startTime: process.startTime, sessionNonce: sessionNonce))
     }
 
     func sendControl(_ action: MacControlAction) {
-        if isDemo { banner = "Demo — \(action.label) not sent"; return }
         client?.send(.control(action: action, sessionNonce: sessionNonce))
     }
 
@@ -381,7 +336,6 @@ final class MonitorViewModel: ObservableObject {
     /// Called as a row appears. Resolves its icon memory → disk → network, so a
     /// cached icon never triggers a network fetch.
     func iconNeeded(for path: String?) {
-        guard !isDemo else { return }   // demo has no agent to fetch icons from
         guard let path, !path.isEmpty, icons[path] == nil, !requestedIconPaths.contains(path) else { return }
         if !diskCheckedPaths.contains(path) {
             diskCheckedPaths.insert(path)
@@ -405,7 +359,6 @@ final class MonitorViewModel: ObservableObject {
     }
 
     func disconnect() {
-        stopDemo()
         intentionalDisconnect = true
         client?.cancel(); client = nil
         consumeTask?.cancel(); reconnectTask?.cancel()

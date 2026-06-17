@@ -18,14 +18,7 @@ struct ContentView: View {
         }
         .tint(Brand.accent)
         .preferredColorScheme(.dark)
-        .onAppear {
-            // `-demoScreenshots` boots straight into Demo Mode for App Store capture.
-            if ProcessInfo.processInfo.arguments.contains("-demoScreenshots") {
-                vm.startDemo()
-            } else {
-                vm.startup()   // discovery + auto-reconnect to the last paired Mac
-            }
-        }
+        .onAppear { vm.startup() }   // discovery + auto-reconnect to the last paired Mac
         .onChange(of: scenePhase) { newPhase in
             if newPhase == .active { vm.appBecameActive() }
         }
@@ -74,15 +67,6 @@ struct DiscoveryView: View {
                         }
                     }
                 }
-
-                Button {
-                    vm.startDemo()
-                } label: {
-                    Label("Try a Demo", systemImage: "play.circle")
-                        .font(.subheadline)
-                }
-                .buttonStyle(.bordered)
-                .padding(.bottom, 30)
             }
             .navigationTitle("VitaMac")
             .toolbar { ToolbarItem(placement: .topBarTrailing) { ProgressView() } }
@@ -237,8 +221,7 @@ struct MainView: View {
             }
         }
         .overlay(alignment: .top) {
-            if let banner = vm.banner,
-               !ProcessInfo.processInfo.arguments.contains("-demoScreenshots") {
+            if let banner = vm.banner {
                 Text(banner).font(.caption).padding(8)
                     .background(.red.opacity(0.15), in: Capsule())
                     .padding(.top, 6)

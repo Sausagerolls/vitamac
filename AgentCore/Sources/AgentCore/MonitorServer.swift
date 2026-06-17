@@ -35,6 +35,7 @@ public final class MonitorServer: @unchecked Sendable {
 
     private var channel = SecureChannel(code: "")
     private var listener: NWListener?
+    private let sleepGuard = SleepAssertion()
     private var timer: DispatchSourceTimer?
     private var connections: [ObjectIdentifier: Conn] = [:]
     private var tick = 0
@@ -142,6 +143,7 @@ public final class MonitorServer: @unchecked Sendable {
         for conn in connections.values { conn.connection.cancel() }
         connections.removeAll()
         listener?.cancel(); listener = nil
+        sleepGuard.release()   // let the Mac sleep normally once we stop serving
     }
 
     // MARK: - Listener
@@ -172,6 +174,9 @@ public final class MonitorServer: @unchecked Sendable {
             switch state {
             case .ready:
                 let p = self.listener?.port?.rawValue ?? 0
+                // Keep the Mac awake while serving so idle sleep can't drop the
+                // connection and close the paired app.
+                self.sleepGuard.acquire()
                 self.onState?(.ready(port: p))
                 self.startBroadcastTimer()
             case .failed(let error):
